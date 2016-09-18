@@ -13,7 +13,9 @@ angular.module('app.routes', [])
       .state('tabs', {
     url: '/tabs',
     templateUrl: 'templates/tabs.html',
+    controller: 'GeneralCtrl',
     abstract:true
+
   })
 
   .state('tabs.tab-Presentacion', {

@@ -1,5 +1,12 @@
 <ion-view title="Tab 2 Default Page" id="page7">
     <ion-content padding="true" class="has-header">
+	<div style="display:{{divComenzar}}">
+		<h1 style=" text-align: center;">TRIVIA</h1>
+		<img class="center" src="img/triviaImagen.jpg" height="300" width="300">
+		 <button id="tab2DefaultPage-button5" ng-click="Comenzar()" class="button button-calm  button-block">Comenzar</button>
+
+	</div>
+    <div style="display:{{divTrivia}};">
         <h1 id="tab2DefaultPage-heading7" style="color:#000000;text-align:center;">{{pregunta.pregunta}}	</h1>
         <ion-list id="tab2DefaultPage-list4">
             <ion-item ng-click="corregir(0)"  id="tab2DefaultPage-list-item6">1){{pregunta.respuestas[0]}}</ion-item>
@@ -7,5 +14,6 @@
             <ion-item ng-click="corregir(2)" id="tab2DefaultPage-list-item8">3){{pregunta.respuestas[2]}}</ion-item>
         </ion-list>
         <button id="tab2DefaultPage-button5" class="button button-calm  button-block">Volver</button>
+      </div>
     </ion-content>
 </ion-view>

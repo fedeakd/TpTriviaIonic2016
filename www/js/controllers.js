@@ -1,43 +1,109 @@
-angular.module('app.controllers', [])
+angular.module('app.controllers', ['ngCordova'])
+.controller('GeneralCtrl', ['$scope', '$stateParams','Informacion','$ionicPopup', 
+	'$ionicTabsDelegate',
+	function ($scope, $stateParams,Informacion,$ionicPopup,$ionicTabsDelegate) {
+		$scope.ComprobarEstadistica=function(){
+			$scope.Informacion=Informacion;
+			if($scope.Informacion.completo===false){
 
-.controller('PresentacionCtrl', ['$scope', '$stateParams', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
-// You can include any angular dependencies as parameters for this function
-// TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams) {
+				$ionicPopup.alert({
+					title: 'Lo siento',
+					template: 'Debes completar la encuesta!!'
+
+				});  
+				$ionicTabsDelegate.select(1);
+				return;
+			}
+
+		}
+
+		$scope.ComprobarTrivia=function(){
+			$scope.Informacion=Informacion;
+			if($scope.Informacion.completo===true){
+
+				$ionicPopup.alert({
+					title: 'Lo siento',
+					template: 'Trivia completa'
+
+				});  
+				$ionicTabsDelegate.select(2);
+				return;
+			}
+
+		}
+
+	}])
+
+.controller('PresentacionCtrl', ['$scope', '$stateParams', 
+	function ($scope, $stateParams) {
 
 
-}])
+	}])
 
 .controller('TriviaCtrl', ['$scope', '$stateParams','$ionicPopup'
-,'$ionicTabsDelegate','Informacion', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
-// You can include any angular dependencies as parameters for this function
-// TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $ionicPopup,$ionicTabsDelegate,Informacion) {
-	console.log(Informacion);
+	,'$ionicTabsDelegate','Informacion','$timeout','$cordovaVibration',
+	function ($scope, $stateParams, $ionicPopup,$ionicTabsDelegate,Informacion,$timeout,$cordovaVibration) {
+		$scope.divComenzar="show";
+		$scope.divTrivia="none";
+	//Parte firebase
+	var firabaseJugadores=new Firebase('https://trivia-74b16.firebaseio.com/Jugadores');
+	var firabasePreguntas=new Firebase('https://trivia-74b16.firebaseio.com/Preguntas');
+	$scope.arrayPreguntas = [];
+	$scope.arrayJugadores = [];
+	firabaseJugadores.on('child_added', function (snapshot) {
+
+		var message = snapshot.val();
+	});
+
+	firabasePreguntas.on('child_added', function (snapshot) {
+		$timeout(function(){
+			var message = snapshot.val();
+			$scope.arrayPreguntas.push(message);
+		});
+	});
+	var infoJugador={
+		'numeroDeJugador':'',
+		'nombre':Informacion.jugador,
+		'preguntas':[],
+		'respuesta':[]
+
+	}
 	var cont=0 ;
 	var respCorrecta=0;
-	$scope.preguntas=[{
-		"pregunta":"¿Cuantos balones de oro tiene Messi?",
-		"respuestas":[3,4,7],
-		"repuestaCorrecta":1}
-		,
-		{"pregunta":"¿Quien invento la electricidad?",
-		"respuestas":['Edison','Tesla','Obama'],
-		"repuestaCorrecta":1}
-		,
-		{"pregunta":"¿Quien es el primer grande?",
-		"respuestas":['Racing','Boca','Bojo'],
-		"repuestaCorrecta":0}
-		,
-		{"pregunta":"",
-		"respuestas":['Racing','Boca','Bojo'],
-		"repuestaCorrecta":0}
-		];
-		$scope.pregunta=$scope.preguntas[0];
-		console.log($scope.pregunta.prengunta);
-		$scope.corregir=function(num){
+	$scope.Vibrar=function(resp){
+		try{
+			if(resp){
+				navigator.vibrate([1000,500,1000,500,1000]);
+			}
+			else{
+				navigator.vibrate([1000,500,1000]);
+			}
+		}catch(e){
+
+			console.log("hola mundo");
+		}
+	}
+
+	$scope.Comenzar=function(){
+		$scope.divComenzar="none";
+		$scope.divTrivia="show";
+		$scope.pregunta=$scope.arrayPreguntas[0];
+	}
+
+	$scope.corregir=function(num){
+		console.log($scope.arrayPreguntas)
+		if($scope.Informacion.completo===true){
+
+			$ionicPopup.alert({
+				title: 'Lo siento',
+				template: 'Ya has compleado la trivia'
+
+			});  
+			$ionicTabsDelegate.select(2);
+		}
 			//Validar respueesta
 			if(num===$scope.pregunta.repuestaCorrecta){
+				$scope.Vibrar(true);
 				$ionicPopup.alert({
 					title: 'Respuesta:',
 					template: 'Respuesta correcta, vamos por la siguente!!'
@@ -45,23 +111,28 @@ function ($scope, $stateParams, $ionicPopup,$ionicTabsDelegate,Informacion) {
 				}); 
 				respCorrecta++;	
 			}else{
+				$scope.Vibrar(false);
 				$ionicPopup.alert({
 					title: 'Lo siento',
 					template: 'Respuesta incorrecta, vamos por la siguente!!'
-
 				});  
-
 			}
+			
+			infoJugador.preguntas.push($scope.pregunta);
+			infoJugador.respuesta.push(num);
 
 			//Si se alcanzo  todas las pregunta disponible
-			if(cont<($scope.preguntas.length)-1){
-				$scope.pregunta=$scope.preguntas[(++cont)];
+			if(cont<($scope.arrayPreguntas.length)-1){
+				$scope.pregunta=$scope.arrayPreguntas[(++cont)];
 			}
 			else{
 				$ionicTabsDelegate.select(2);
+				firabaseJugadores.push(infoJugador);
+				console.log(infoJugador);
 				console.log("Cantidad de respuesta correcta es "+ respCorrecta);
 				Informacion.respuestaCorrecta=respCorrecta;
-				Informacion.cantidadDeResputaCorrecta=$scope.preguntas.length;
+				Informacion.cantidadDeResputaCorrecta=$scope.arrayPreguntas.length;
+				Informacion.completo=true;
 			}
 
 		}
@@ -82,19 +153,30 @@ function ($scope, $stateParams, $ionicPopup,$ionicTabsDelegate,Informacion) {
 	}])
 
 .controller('EstadisticaCtrl', ['$scope', '$stateParams','Informacion', 
-	'$ionicPopup','$ionicTabsDelegate',// The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
-// You can include any angular dependencies as parameters for this function
-// TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams,Informacion,$ionicPopup,$ionicTabsDelegate) {
-	$scope.Informacion=Informacion;
-	if($scope.Informacion.completo===false){
+	'$ionicPopup','$ionicTabsDelegate',
+	function ($scope, $stateParams,Informacion,$ionicPopup,$ionicTabsDelegate) {
 
-		$ionicPopup.alert({
-			title: 'Lo siento',
-			template: 'Debes completar la encuesta!!'
 
-		});  
-		$ionicTabsDelegate.select(1);
-	}
+	}])
 
-}])
+
+
+
+
+/*	$scope.preguntas=[{
+		"pregunta":"¿Cuantos balones de oro tiene Messi?",
+		"respuestas":[3,4,7],
+		"repuestaCorrecta":1}
+		,
+		{"pregunta":"¿Quien invento la electricidad?",
+		"respuestas":['Edison','Tesla','Obama'],
+		"repuestaCorrecta":1}
+		,
+		{"pregunta":"¿Quien es el primer grande?",
+		"respuestas":['Racing','Boca','Bojo'],
+		"repuestaCorrecta":0}
+		,
+		{"pregunta":"",
+		"respuestas":['Racing','Boca','Bojo'],
+		"repuestaCorrecta":0}
+		];*/
