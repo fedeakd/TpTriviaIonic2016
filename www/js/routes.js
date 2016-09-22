@@ -52,6 +52,15 @@ angular.module('app.routes', [])
         controller: 'EstadisticaCtrl'
       }
     }
+  })  .state('tabs.tab-Usuarios', {
+    url: '/Usuarios',
+     cache: false,
+    views: {
+      'Usuarios': {
+        templateUrl: 'templates/tab-Usuarios.html',
+        controller: 'UsuariosCtrl'
+      }
+    }
   })
 
 $urlRouterProvider.otherwise('/Principal')

@@ -25,6 +25,7 @@ angular.module('app', ['firebase','ionic', 'app.controllers', 'app.routes'])
     jugador:'fefe',
     respuestaCorrecta :0,
     cantidadDeResputaCorrecta:0,
-    completo:false
+    completo:false,
+    hayConexion:false
   };
 });
