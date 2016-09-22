@@ -23,7 +23,7 @@ angular.module('app.controllers', ['ngCordova','firebase'])
 
 				$ionicPopup.alert({
 					title: 'Lo siento',
-					template: 'Trivia completa'
+					template: 'Trivia completa, reinicie la aplicacion'
 
 				});  
 				$ionicTabsDelegate.select(2);
@@ -100,7 +100,6 @@ angular.module('app.controllers', ['ngCordova','firebase'])
 		}
 
 		$scope.Comenzar=function(){
-			alert($scope.hayConexion);
 			$scope.divComenzar="none";
 			$scope.divTrivia="show";
 			if(!$scope.hayConexion){
@@ -138,7 +137,7 @@ angular.module('app.controllers', ['ngCordova','firebase'])
 				$scope.Vibrar(true);
 				$ionicPopup.alert({
 					title: 'Respuesta:',
-					template: 'Respuesta correcta, vamos por la siguente!!'
+					template: 'Respuesta correcta'
 
 				}); 
 				respCorrecta++;	
@@ -146,7 +145,7 @@ angular.module('app.controllers', ['ngCordova','firebase'])
 				$scope.Vibrar(false);
 				$ionicPopup.alert({
 					title: 'Lo siento',
-					template: 'Respuesta incorrecta, vamos por la siguente!!'
+					template: 'Respuesta incorrecta'
 				});  
 			}
 			
@@ -158,13 +157,14 @@ angular.module('app.controllers', ['ngCordova','firebase'])
 				$scope.pregunta=$scope.arrayPreguntas[(++cont)];
 			}
 			else{
+				Informacion.completo=true;
 				$ionicTabsDelegate.select(2);
 				
 				console.log(infoJugador);
 				console.log("Cantidad de respuesta correcta es "+ respCorrecta);
 				Informacion.respuestaCorrecta=respCorrecta;
 				Informacion.cantidadDeResputaCorrecta=$scope.arrayPreguntas.length;
-				Informacion.completo=true;
+			
 				if($scope.hayConexion){
 					firabaseJugadores.push(infoJugador);
 				}
@@ -205,20 +205,23 @@ angular.module('app.controllers', ['ngCordova','firebase'])
 
 	}])
 
-.controller('PrincipalCtrl', ['$scope','$state' ,'$stateParams','Informacion','$ionicPlatform','$cordovaFile',
+.controller('PrincipalCtrl', ['$scope','$state' ,'$stateParams','Informacion','$ionicPlatform','$cordovaFile','$ionicPopup',
 
-	function ($scope,$state, $stateParams,Informacion,$ionicPlatform,$cordovaFile) {
+	function ($scope,$state, $stateParams,Informacion,$ionicPlatform,$cordovaFile,$ionicPopup) {
 		try{
 			$ionicPlatform.ready(  function() {
 				$cordovaFile.checkFile(cordova.file.externalRootDirectory, "Jugadores.txt")
 				.then(function (success) {
-					alert(success.isFile);
 					$scope.devuelve=success;
 				}, function (error) {
 					$ionicPlatform.ready(function() {
 						$cordovaFile.writeFile(cordova.file.externalRootDirectory, "Jugadores.txt",'[]', true)
 						.then(function (success) {
-							alert("creado");
+							$ionicPopup.alert({
+								title: 'Informacion',
+								template: 'Se a creado un archivo'
+
+							});
 						}, function (error) {
 						});
 
@@ -241,12 +244,12 @@ angular.module('app.controllers', ['ngCordova','firebase'])
 
 .controller('EstadisticaCtrl', ['$scope', '$stateParams','Informacion', 
 	'$ionicPopup','$ionicTabsDelegate','$cordovaFile',
-	function ($scope, $stateParams,Informacion,$ionicPopup,$ionicTabsDelegate,$cordovaFile) {
+	function ($scope, $stateParams,Informacion,$ionicPopup,$ionicTabsDelegate,$cordovaFile,$ionicPopup) {
 
 
 	}])
 .controller('UsuariosCtrl',
-	function ($scope, $stateParams,Informacion,$ionicPopup,$ionicTabsDelegate,$cordovaFile,$firebaseArray,$ionicPlatform) {
+	function ($scope, $stateParams,Informacion,$ionicPopup,$ionicTabsDelegate,$cordovaFile,$firebaseArray,$ionicPlatform,$ionicPopup) {
 		$scope.prueba="hola";
 		$scope.arrayJson=[];
 		$scope.arrayJson.push({nombre:"fefe",apellido:"santamaria" ,estado:'none'});
@@ -257,7 +260,7 @@ angular.module('app.controllers', ['ngCordova','firebase'])
 		
 		new Firebase('https://trivia-74b16.firebaseio.com/').child(".info/connected").on('value', function(connectedSnap) {
 			console.log(connectedSnap.val());
-			if(connectedSnap.val()){
+			if(connectedSnap.val()){ 
 				$scope.jugadores = $firebaseArray(firebaseJugadores);
 			}
 			else{
@@ -266,7 +269,11 @@ angular.module('app.controllers', ['ngCordova','firebase'])
 						$cordovaFile.readAsText(cordova.file.externalRootDirectory, "Jugadores.txt")
 						.then(function(success) {
 							$scope.jugadores=JSON.parse(success);
+								$ionicPopup.alert({
+								title: 'Informacion',
+								template: 'No tienes conexion a internet,Muestro el archivo interno '
 
+							});
 						}, function(error){
 							alert('didn\'t find the file: ' + error.code);
 						})
